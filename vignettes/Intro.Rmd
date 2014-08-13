@@ -1,0 +1,156 @@
+<!--
+%\VignetteEngine{knitr::knitr}
+%\VignetteIndexEntry{BlandAltmanLeh Intro}
+-->
+
+---
+title: "BlandAltmanLeh Intro"
+author: "Bernhard Lehnert"
+date: "Wednesday, August 13, 2014"
+output: html_document
+---
+
+
+
+Bland-Altman-Plots
+===
+Bland-Altman plots are a well established method to check the agreement of
+different measurement methods or the retest-reliability of a single measurement
+method. They do not come included in R but can easily be produced using R.
+The BlandAltmanLeh package tries to make Bland-Altman plots even more
+accessable.
+
+You can find the underlying publications by JM Bland and DG Altman on 
+http://http://www-users.york.ac.uk/~mb55/meas/ba.htm form where you can also 
+download for free
+the 1986 publication in Lancet, which this package is based on. Written for 
+medical doctors this article is easily accessible for the non-statistician.
+
+What's the main idea?
+---
+Imagine, you've measured something with measurement method A and B and you want
+to compare both. Let's say
+```{r}
+A <- c(-0.358, 0.788, 1.23, -0.338, -0.789, -0.255, 0.645, 0.506, 
+0.774, -0.511, -0.517, -0.391, 0.681, -2.037, 2.019, -0.447, 
+0.122, -0.412, 1.273, -2.165)
+B <- c(0.121, 1.322, 1.929, -0.339, -0.515, -0.029, 1.322, 0.951, 
+0.799, -0.306, -0.158, 0.144, 1.132, -0.675, 2.534, -0.398, 0.537, 
+0.173, 1.508, -1.955)
+```
+
+Your first attempt to inspect these data may be a scatter plot like
+```{r}
+plot(A, B)
+abline(0,1)
+```
+
+Bland and Altman propose a different approach, where the x axis is the mean of
+the two measurements and the y axis is the difference between them. 
+```{r}
+plot((A+B)/2, A-B)
+```
+
+Now three additional lines are added for the mean of the differences and 2 
+(1,96 resp.) standard deviations above and below that.
+```{r}
+library(BlandAltmanLeh)
+bland.altman.plot(A, B)
+```
+
+ggplot2
+---
+Of course you might be inclined to draw that using ggplot2:
+```{r}
+pl <- bland.altman.plot(A, B, graph.sys = "ggplot2")
+```
+
+Which is mainly a matter of taste. As you can see, 1 out of 20 data points falls
+out of the 95% confidence interval depicted by the upper and lower line. That's
+just what one would expect.
+
+Of course, these lines have an error margin and Bland and Altman 1986 describe how
+to compute confidence intervals for the lines. These can also be calculated
+and printed with the BlandAltmanLeh package as in:
+```{r}
+pl <- bland.altman.plot(A, B, graph.sys="ggplot2", conf.int=.95)
+
+# or in base-graphics:
+bland.altman.plot(A, B, conf.int=.95)
+```
+
+
+Sunflower-Option
+---
+
+Sometimes data have ties. Imagine your test is a questionnaire which will only
+ever give scores between 0 and 10 and you are checking retest-agreement:
+```{r}
+A <- c(7, 8, 4, 6, 4, 5, 9, 7, 5, 8, 1, 4, 5, 7, 3, 4, 4, 9, 3, 3, 
+1, 4, 5, 6, 4, 7, 4, 7, 7, 5, 4, 6, 3, 4, 6, 4, 7, 4, 6, 5)
+B <- c(8, 7, 4, 6, 3, 6, 9, 8, 4, 9, 0, 5, 5, 9, 3, 5, 5, 8, 3, 3, 
+1, 4, 4, 7, 4, 8, 3, 7, 7, 5, 6, 7, 3, 3, 7, 3, 6, 5, 9, 5)
+
+bland.altman.plot(A, B)
+```
+
+Obviously there is a lot of ties in these data. There are 21 data points visible
+even though there are 40 data points contained. That is why the BlandAltmanLeh
+packages offers a sunflower plot as the basis of a Bland-Altman plot for data
+with ties:
+
+```{r}
+bland.altman.plot(A, B, sunflower=TRUE)
+```
+
+Unfortunately, this option does not exist with ggplot2 output. However, if you
+want to make a plot of your own you can still use the BlandAltmanLeh package to
+compute the statistics behind the Bland-Altman plot as in this little example, 
+where male and female data are to be drawn in different colors:
+
+```{r}
+A <- c(-0.358, 0.788, 1.23, -0.338, -0.789, -0.255, 0.645, 0.506, 
+0.774, -0.511, -0.517, -0.391, 0.681, -2.037, 2.019, -0.447, 
+0.122, -0.412, 1.273, -2.165)
+B <- c(0.121, 1.322, 1.929, -0.339, -0.515, -0.029, 1.322, 0.951, 
+0.799, -0.306, -0.158, 0.144, 1.132, -0.675, 2.534, -0.398, 0.537, 
+0.173, 1.508, -1.955)
+sex <- c( 1,1,1,1,2,2,2,1,1,1,2,2,2,2,2,1,1,2,1,2)
+
+ba.stats <- bland.altman.stats(A, B)
+
+plot(ba.stats$means, ba.stats$diffs, col=sex, 
+     sub=paste("critical difference is",ba.stats$critical.diff),
+     main="make your own graph easily", ylim=c(-1.5,1.5))
+abline(h = ba.stats$lines, lty=c(2,3,2), col=c("lightblue","blue","lightblue"), 
+       lwd=c(3,2,3))
+```
+
+Thus, you have the full flexibility of the R graphic systems but no need to
+worry about details like missing data etc.
+
+Yet another Bland-Altman procedure? What's in a name?
+===
+With Bland-Altman plots being a standard analysis, one should think, there are 
+lots of packages on CRAN. Yes, there are:
+
+* Package **PairedData** has a function plotBA based on ggplot2 (and I prefer base
+plots) and no stats as return value
+* Package **ResearchMethods** has a function BlandAltman which focuses on a GUI and
+has no return values.
+* Package **epade has** a function bland.altman.ade which appears to have no return 
+values.
+* Package **MethComp** has a functino BlandAltman that is deprecated and a function
+ba.plot which does a lot, mainly regression and from first glance seems to be 
+worthy of further investigation for serious work.
+* There are **probably other packages** that I did not mention. There I did not want
+to give this package a name like RBlandAltman but state, that this is just 
+humble one approach by one Person (Lehnert) and therefore BlandAltmanLeh
+
+Last but not least
+===
+Before using this in any serious work consider version number and perform 
+plausibility checks.
+
+Enjoy!
+
