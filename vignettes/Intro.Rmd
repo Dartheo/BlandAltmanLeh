@@ -1,3 +1,8 @@
+---
+output: 
+  html_document: 
+    theme: readable
+---
 <!--
 %\VignetteEngine{knitr::knitr}
 %\VignetteIndexEntry{BlandAltmanLeh Intro}
@@ -6,8 +11,8 @@
 ---
 title: "BlandAltmanLeh Intro"
 author: "Bernhard Lehnert"
-date: "Wednesday, August 13, 2014"
-output: html_document
+date: "Dec, 15 2015"
+
 ---
 
 
@@ -16,20 +21,21 @@ Bland-Altman-Plots
 ===
 Bland-Altman plots are a well established method to check the agreement of
 different measurement methods or the retest-reliability of a single measurement
-method. They do not come included in R but can easily be produced using R.
+method. (Apparently, Bland-Altman plots are otherwise known as Tukey's Mean Difference Plot.) They do not come included in R but can easily be produced using R (find different packages at the end of this document).
 The BlandAltmanLeh package tries to make Bland-Altman plots even more
-accessable.
+accessible. It also features confidence intervals and the combination of 
+Bland-Altman-/Tukey Mean Difference Plot and sunflower plot.
 
-You can find the underlying publications by JM Bland and DG Altman on 
-http://http://www-users.york.ac.uk/~mb55/meas/ba.htm form where you can also 
-download for free
-the 1986 publication in Lancet, which this package is based on. Written for 
-medical doctors this article is easily accessible for the non-statistician.
+This package is based on the 1986 publication of JM Bland and DG Altman. It is available for free download on http://www-users.york.ac.uk/~mb55/meas/ba.htm 
+Written for medical doctors, this article is very well readable for the 
+non-statistician and thus highly recommended.
 
-What's the main idea?
+
+What's the main idea behind Bland-Altman plots?
 ---
-Imagine, you've measured something with measurement method A and B and you want
-to compare both. Let's say
+Imagine, you've measured some parameter with two different measurements at different 
+times or under differing conditions. Let's say you have measured the following dependend 
+measurements.
 ```{r}
 A <- c(-0.358, 0.788, 1.23, -0.338, -0.789, -0.255, 0.645, 0.506, 
 0.774, -0.511, -0.517, -0.391, 0.681, -2.037, 2.019, -0.447, 
@@ -40,39 +46,46 @@ B <- c(0.121, 1.322, 1.929, -0.339, -0.515, -0.029, 1.322, 0.951,
 ```
 
 Your first attempt to inspect these data may be a scatter plot like
-```{r}
-plot(A, B)
+```{r, cache=FALSE, results='hide'}
+plot(A, B, main="Scatter plot")
 abline(0,1)
 ```
 
-Bland and Altman propose a different approach, where the x axis is the mean of
-the two measurements and the y axis is the difference between them. 
-```{r}
-plot((A+B)/2, A-B)
+Bland and Altman propose a different approach, where the x axis is the mean of 
+two measurements each and the y axis is the difference between them. 
+```{r, results='hide'}
+plot((A+B)/2, A-B, main="Better, not yet perfect")
 ```
 
 Now three additional lines are added for the mean of the differences and 2 
 (1,96 resp.) standard deviations above and below that.
-```{r}
+```{r, results='hide'}
 library(BlandAltmanLeh)
-bland.altman.plot(A, B)
+bland.altman.plot(A, B, main="A full Bland Altman Plot")
 ```
 
 ggplot2
 ---
 Of course you might be inclined to draw that using ggplot2:
 ```{r}
+library(ggplot2)
 pl <- bland.altman.plot(A, B, graph.sys = "ggplot2")
 ```
 
-Which is mainly a matter of taste. As you can see, 1 out of 20 data points falls
+Which is mainly a matter of taste. (like in this poster where we wanted the 
+ggplot2-look for the histogram and thus opted for the ggplot2 Bland Altman plot 
+for consistency: http://www.egms.de/static/pdf/journals/cpo/2015-11/cpo001163.pdf 
+Lehnert B, Vogel S, Hosemann W, 
+GMS Curr Posters Otorhinolaryngol Head Neck Surg 2015; 11:Doc198 (20150416) ) 
+
+As you can see, 1 out of 20 data points in the figure above falls
 out of the 95% confidence interval depicted by the upper and lower line. That's
 just what one would expect.
 
 Of course, these lines have an error margin and Bland and Altman 1986 describe how
 to compute confidence intervals for the lines. These can also be calculated
 and printed with the BlandAltmanLeh package as in:
-```{r}
+```{r, results='hide'}
 pl <- bland.altman.plot(A, B, graph.sys="ggplot2", conf.int=.95)
 
 # or in base-graphics:
@@ -85,7 +98,7 @@ Sunflower-Option
 
 Sometimes data have ties. Imagine your test is a questionnaire which will only
 ever give scores between 0 and 10 and you are checking retest-agreement:
-```{r}
+```{r, results='hide'}
 A <- c(7, 8, 4, 6, 4, 5, 9, 7, 5, 8, 1, 4, 5, 7, 3, 4, 4, 9, 3, 3, 
 1, 4, 5, 6, 4, 7, 4, 7, 7, 5, 4, 6, 3, 4, 6, 4, 7, 4, 6, 5)
 B <- c(8, 7, 4, 6, 3, 6, 9, 8, 4, 9, 0, 5, 5, 9, 3, 5, 5, 8, 3, 3, 
@@ -99,7 +112,7 @@ even though there are 40 data points contained. That is why the BlandAltmanLeh
 packages offers a sunflower plot as the basis of a Bland-Altman plot for data
 with ties:
 
-```{r}
+```{r, results='hide'}
 bland.altman.plot(A, B, sunflower=TRUE)
 ```
 
@@ -108,7 +121,7 @@ want to make a plot of your own you can still use the BlandAltmanLeh package to
 compute the statistics behind the Bland-Altman plot as in this little example, 
 where male and female data are to be drawn in different colors:
 
-```{r}
+```{r, results='hide'}
 A <- c(-0.358, 0.788, 1.23, -0.338, -0.789, -0.255, 0.645, 0.506, 
 0.774, -0.511, -0.517, -0.391, 0.681, -2.037, 2.019, -0.447, 
 0.122, -0.412, 1.273, -2.165)
@@ -128,6 +141,12 @@ abline(h = ba.stats$lines, lty=c(2,3,2), col=c("lightblue","blue","lightblue"),
 
 Thus, you have the full flexibility of the R graphic systems but no need to
 worry about details like missing data etc.
+
+Find an example of an ggplot2 bland.altman.plot combined with a regression line 
+and regression confidence intervall on this poster in fig 3: Evans R, Gonnermann U, 
+Koch A, Lehnert B, 
+GMS Curr Posters Otorhinolaryngol Head Neck Surg 2015; 11:Doc310 (20150416)
+http://www.egms.de/static/pdf/journals/cpo/2015-11/cpo001275.pdf
 
 Yet another Bland-Altman procedure? What's in a name?
 ===
@@ -149,8 +168,9 @@ humble one approach by one Person (Lehnert) and therefore BlandAltmanLeh
 
 Last but not least
 ===
-Before using this in any serious work consider version number and perform 
+Before using this in any serious work consider the version number and perform 
 plausibility checks.
 
 Enjoy!
 
+Bernhard Lehnert, University Medicine Greifswald, Germany

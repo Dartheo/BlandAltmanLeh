@@ -9,17 +9,17 @@ BlandAltmanLeh
 \description{
 Bland-Altman Plots for assessing agreement between two methods of clinical
 measurement and returning associated statistics. Plots are optionally extended
-by some confidence intervals that are mentioned in "J. Martin Bland, Douglas 
+by confidence intervals as described in "J. Martin Bland, Douglas 
 G. Altman (1986): Statistical Methods For Assessing Agreement Between Two Methods Of
 Clinical Measurement" but not included in the graphics of that publication.
-Right now using mostly base graphics, with limited support of ggplot2.
+Either base graphics or ggplot2 can be used.
 }
 \details{
 \tabular{ll}{
 Package: \tab BlandAltmanLeh\cr
 Type: \tab Package\cr
-Version: \tab 0.1.0\cr
-Date: \tab 2014-08-12\cr
+Version: \tab 0.2.1\cr
+Date: \tab 2015-12-15\cr
 License: \tab GPL\cr
 }
  Bland Altman plots are a diagnostic tool for assessing the agreement between

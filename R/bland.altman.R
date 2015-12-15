@@ -4,7 +4,7 @@
 #' graphic functions like \code{bland.altman.plot} but will be usefull for 
 #' customized plot (see examples for color coded BA plot). Offers symmetric 
 #' confidence intervalls for bias and upper and lower limits. 
-#' 
+#'  
 #' @param group1 vector of numerics to be compared to group2
 #' @param group2 vector of numerics to be compared to group1
 #' @param two numeric defines how many standard deviations from mean are to be 
@@ -56,6 +56,8 @@
 #' # apparently wrong results? CAVE: Bland&Altman are using two=2, thus
 #' bland.altman.stats(bland.altman.PEFR[,1],bland.altman.PEFR[,3], two=2)$CI.lines
 #' @export
+#' @importFrom graphics abline plot sunflowerplot
+#' @importFrom stats na.omit qt sd
 bland.altman.stats <- function(group1, group2, two=1.96, mode=1, conf.int=.95){
     if(length(group1) != length(group2)) 
         stop("Error in bland.altman.stats: groups differ in length.")
@@ -93,7 +95,7 @@ bland.altman.stats <- function(group1, group2, two=1.96, mode=1, conf.int=.95){
     CI.lines <- c(lower.limit.ci.lower=lower.limit + t1*sqrt(sd(diffs)^2*3/based.on),
                   lower.limit.ci.upper=lower.limit + t2*sqrt(sd(diffs)^2*3/based.on),
                   mean.diff.ci.lower=mean.diffs+t1*sd(diffs)/sqrt(based.on),
-                  mean.diff.ci.lower=mean.diffs+t2*sd(diffs)/sqrt(based.on),
+                  mean.diff.ci.upper=mean.diffs+t2*sd(diffs)/sqrt(based.on),
                   upper.limit.ci.lower=upper.limit + t1*sqrt(sd(diffs)^2*3/based.on),
                   upper.limit.ci.upper=upper.limit + t2*sqrt(sd(diffs)^2*3/based.on)
                   )
@@ -169,6 +171,7 @@ bland.altman.stats <- function(group1, group2, two=1.96, mode=1, conf.int=.95){
 #'                   main="discrete values lead to ties")
 #'                   
 #' # only very basic support for ggplot2 yet:
+#' library(ggplot2)
 #' a <- bland.altman.plot(rnorm(20), rnorm(20), graph.sys="ggplot2", conf.int=.9)
 #' print(a + xlab("you can change this later") + ggtitle("Title goes here"))                  
 bland.altman.plot <- function(group1, group2, two=1.96, mode=1,
@@ -221,15 +224,17 @@ bland.altman.ggplot2 <- function(group1, group2, two, mode, conf.int,
         warning("No sunflower option in ggplot2 implemented yet.")
     ba <- bland.altman.stats(group1 = group1, group2 = group2, two=two, 
                              mode = mode, conf.int=conf.int)
-    if(!require("ggplot2"))
+    if(!requireNamespace("ggplot2"))
         stop("Could not load ggplot2. Sorry.")
     values <- data.frame(m = ba$means, d = ba$diffs)
     m <- NULL; d <- NULL #this is useless but helps with CRAN tests ;-(
-    p <- ggplot(values, aes(x=m, y=d))+geom_point()+
-                geom_hline(yintercept=ba$lines, linetype=2)+
-                xlab("mean of measurements")+ylab("difference")
+    p <- ggplot2::ggplot(values, ggplot2::aes(x=m, y=d))+
+         ggplot2::geom_point()+
+         ggplot2::geom_hline(yintercept=ba$lines, linetype=2)+
+         ggplot2::xlab("mean of measurements")+
+         ggplot2::ylab("difference")
     if(conf.int>0){
-        p <- p+geom_hline(yintercept=ba$CI.lines, linetype=3)
+        p <- p+ggplot2::geom_hline(yintercept=ba$CI.lines, linetype=3)
     }
     print(p)
     return(p)
