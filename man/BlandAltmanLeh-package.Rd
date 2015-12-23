@@ -18,8 +18,8 @@ Either base graphics or ggplot2 can be used.
 \tabular{ll}{
 Package: \tab BlandAltmanLeh\cr
 Type: \tab Package\cr
-Version: \tab 0.2.1\cr
-Date: \tab 2015-12-15\cr
+Version: \tab 0.3.1\cr
+Date: \tab 2015-12-23\cr
 License: \tab GPL\cr
 }
  Bland Altman plots are a diagnostic tool for assessing the agreement between
